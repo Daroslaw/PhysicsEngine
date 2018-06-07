@@ -38,7 +38,7 @@ public:
 	float GetDynamicFriction() const;
 
 	physShape *GetShape() const;
-	physAABB GetAABB() const;
+	physAABB & GetAABB();
 	physVec2 GetPos() const;
 	physRot GetRot() const;
 
@@ -73,11 +73,34 @@ private:
 	float m_dynamicFriction;
 };
 
+struct physBodyBufferSpan
+{
+    physBodyBufferSpan(physBody* first, uint32_t count)
+    {
+        this->array = first;
+        this->size = count;
+    }
+
+    uint32_t size;
+    physBody* array;
+
+    physBody & operator[](uint32_t idx) const
+    {
+        return array[idx];
+    }
+
+    physBodyBufferSpan SubSpan(uint32_t fromIdx, uint32_t toIdx) const
+    {
+        return physBodyBufferSpan(&array[fromIdx], toIdx - fromIdx);
+    }
+};
+
 struct physBodyBuffer
 {
-    unsigned int count;
+    uint32_t count;
     physBody bodies[MAX_BODIES];
 
     void Reset();
     void ResetHard();
+    physBodyBufferSpan AsSpan();
 };

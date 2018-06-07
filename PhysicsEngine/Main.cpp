@@ -51,7 +51,7 @@ void main(void)
 		game.Update(frameTime.asSeconds());
         Benchmark::Get().StopTimer("Update");
         Benchmark::Get().RunTimer("Render");
-        //game.Render(simulationWindow);
+        game.Render(simulationWindow);
         Benchmark::Get().StopTimer("Render");
         Benchmark::Get().StopTimer("Total");
 

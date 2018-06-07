@@ -4,12 +4,7 @@
 #include "PhysicsCollision.h"
 
 
-void NaiveNbyN(physBodyBuffer & bodies, physCollisionBuffer & collisions);
-
-class TreeBuilder
-{
-    
-};
+void NaiveNbyN(physBodyBufferSpan & bodies, physCollisionBuffer & collisions);
 
 template <class BuildingStrategy, class PartitioningStrategy, class TraversalStrategy>
 void BoundingVolumeHierarchy(physBodyBuffer & bodies, physCollisionBuffer & collisions);

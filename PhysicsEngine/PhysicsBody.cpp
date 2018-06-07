@@ -132,7 +132,7 @@ physShape * physBody::GetShape() const
 	return m_shape;
 }
 
-physAABB physBody::GetAABB() const
+physAABB & physBody::GetAABB()
 {
 	return m_aabb;
 }
@@ -267,4 +267,9 @@ void physBodyBuffer::ResetHard()
     for (uint32_t i = 0; i < count; ++i)
         bodies[i] = physBody();
     Reset();
+}
+
+physBodyBufferSpan physBodyBuffer::AsSpan()
+{
+    return physBodyBufferSpan(bodies, count);
 }
