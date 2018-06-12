@@ -10,14 +10,19 @@ void NaiveNbyN(physBodyBufferSpan & bodies, physCollisionBuffer & collisions)
         {
             auto &b1 = bodies[i];
             auto &b2 = bodies[j];
-            if (&b1 == &b2)
-                continue;
             auto &aabb1 = b1.GetAABB();
             auto &aabb2 = b2.GetAABB();
             if (aabb1.Intersects(aabb2))
                 collisions.AppendCollision(&b1, &b2);
         }
     }
+}
+
+void UniformGrid(physBodyBuffer & bodies, physCollisionBuffer & collisions)
+{
+    static BroadPhaseUniformGrid bp(bodies, physVec2(0, 0), physVec2(800, 600));
+    bp.SetBodies(bodies);
+    bp.Solve(collisions);
 }
 
 template<class BuildingStrategy, class PartitioningStrategy, class TraversalStrategy>

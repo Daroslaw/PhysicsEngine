@@ -159,6 +159,7 @@
   <ItemGroup>
     <ClInclude Include="Benchmark.h" />
     <ClInclude Include="Benchmarking.h" />
+    <ClInclude Include="BroadPhaseUniformGrid.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="PhysicsBody.h" />
     <ClInclude Include="PhysicsBroadPhase.h" />

@@ -48,6 +48,7 @@ struct physCollision
 		dynamicFriction = 0;
 	}
 
+    bool IsValid();
 	void Initialize();
 	void Solve() const;
 	void PositionalCorrection() const;

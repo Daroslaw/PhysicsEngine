@@ -155,17 +155,18 @@ void physWorld::UpdatePosition(physBody * body, float dt) const
 void physWorld::BroadPhase()
 {
     Benchmark::Get().RunTimer("Collision");
-    auto bodySpan = m_bodies.AsSpan();
-    NaiveNbyN(bodySpan, m_collisions);
+    //auto bodySpan = m_bodies.AsSpan();
+    //NaiveNbyN(bodySpan, m_collisions);
+    UniformGrid(m_bodies, m_collisions);
     Benchmark::Get().StopTimer("Collision");
 }
 
 void physWorld::NarrowPhase()
 {
-	for (uint32_t i = 0; i < m_collisions.count; ++i)
-	{
+    for (uint32_t i = 0; i < m_collisions.count; ++i)
+    {
         auto &col = m_collisions.collisions[i];
-		auto b1 = col.A;
+        auto b1 = col.A;
 		auto b2 = col.B;
 		auto b1type = b1->GetShape()->GetType();
 		auto b2type = b2->GetShape()->GetType();

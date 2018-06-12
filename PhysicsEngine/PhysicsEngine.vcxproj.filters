@@ -25,6 +25,9 @@
     <Filter Include="Source Files\Utility">
       <UniqueIdentifier>{9f737b68-c5f2-4a0c-b9da-adf9e04d92e8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Engine\SpatialPartitioning">
+      <UniqueIdentifier>{c42a12c7-5b5c-44d0-a1a3-821cc9dc4521}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -91,6 +94,9 @@
     </ClInclude>
     <ClInclude Include="Tree.h">
       <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="BroadPhaseUniformGrid.h">
+      <Filter>Header Files\Engine\SpatialPartitioning</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -2,9 +2,14 @@
 #include "PhysicsBody.h"
 #include <vector>
 
+bool physCollision::IsValid()
+{
+    return A != nullptr && B != nullptr;
+}
+
 void physCollision::Initialize()
 {
-	if (A == nullptr && B == nullptr)
+	if (!IsValid())
 		return;
 	if (A->IsStatic() && B->IsStatic())
 		return;

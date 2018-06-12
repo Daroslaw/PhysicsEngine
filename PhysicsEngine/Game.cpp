@@ -69,7 +69,7 @@ void Game::Init()
 {
     drawAABB = false;
     drawContactPoints = false;
-    InitScene1();
+    InitScene5();
 }
 
 void Game::InitScene1()

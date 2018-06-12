@@ -22,8 +22,8 @@ void main(void)
 	sf::Time frameTime = sf::seconds(speedFactor / FPS);
 	sf::Clock fpsCounter;
 
-	Game game;
-	game.Init();
+	Game *game = new Game();
+	game->Init();
 
     std::cout << std::setprecision(9);
 
@@ -40,7 +40,7 @@ void main(void)
 				simulationWindow.close();
 				break;
 			case sf::Event::KeyPressed:
-				game.Input(ev.key.code);
+				game->Input(ev.key.code);
 				break;
 			default:
 				break;
@@ -48,10 +48,10 @@ void main(void)
 		}
         Benchmark::Get().RunTimer("Total");
         Benchmark::Get().RunTimer("Update");
-		game.Update(frameTime.asSeconds());
+		game->Update(frameTime.asSeconds());
         Benchmark::Get().StopTimer("Update");
         Benchmark::Get().RunTimer("Render");
-        game.Render(simulationWindow);
+        game->Render(simulationWindow);
         Benchmark::Get().StopTimer("Render");
         Benchmark::Get().StopTimer("Total");
 
@@ -61,5 +61,6 @@ void main(void)
         std::cout << "Render: " << Benchmark::Get().PopResult("Render").count << std::endl;
         std::cout << "Collision: " << Benchmark::Get().PopResult("Collision").count << std::endl << std::endl;
 	}
+    delete game;
     //benchmarkWindow.close();
 }
