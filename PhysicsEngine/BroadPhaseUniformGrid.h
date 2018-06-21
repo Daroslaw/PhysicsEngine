@@ -110,8 +110,9 @@ inline void BroadPhaseUniformGrid::Solve(physCollisionBuffer& collisions)
 
 inline float BroadPhaseUniformGrid::CalculateCellSize() const
 {
-    //  Largest Object Strategy
     constexpr auto SQRT2 = float(M_SQRT2);
+#if 0
+    //  Largest Object Strategy
     float largestExtent = 0;
     for(uint16_t i = 0; i < m_bodies.size; ++i)
     {
@@ -120,6 +121,17 @@ inline float BroadPhaseUniformGrid::CalculateCellSize() const
         largestExtent = std::max(largestExtent, std::max(extents.x, extents.y));
     }
     return largestExtent * SQRT2;
+#else
+    //  Average Object Strategy
+    float sumOfExtents = 0;
+    for (uint16_t i = 0; i < m_bodies.size; ++i)
+    {
+        auto& aabb = m_bodies[i].GetAABB();
+        auto extents = aabb.GetExtents() * 2;
+        sumOfExtents += std::max(extents.x, extents.y);
+    }
+    return sumOfExtents / m_bodies.size;
+#endif
 }
 
 inline void BroadPhaseUniformGrid::AssignObjectsToBuckets()
