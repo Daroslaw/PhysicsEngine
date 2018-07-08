@@ -69,7 +69,7 @@ public:
         m_grid = FixedGrid(topLeftCornerPosition, width, height, cellSize);
     }
 
-    void SetBodies(physBodyBuffer & bodies);
+    void SetBodies(physBodyBufferSpan & bodies);
     void Solve(physCollisionBuffer & collisions);
 
 private:
@@ -81,9 +81,9 @@ private:
     FixedGrid m_grid;
 };
 
-inline void BroadPhaseUniformGrid::SetBodies(physBodyBuffer & bodies)
+inline void BroadPhaseUniformGrid::SetBodies(physBodyBufferSpan & bodies)
 {
-    m_bodies = bodies.AsSpan();
+    m_bodies = bodies;
 }
 
 inline void BroadPhaseUniformGrid::Solve(physCollisionBuffer& collisions)

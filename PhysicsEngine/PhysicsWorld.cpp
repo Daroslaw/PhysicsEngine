@@ -155,9 +155,9 @@ void physWorld::UpdatePosition(physBody * body, float dt) const
 void physWorld::BroadPhase()
 {
     Benchmark::Get().RunTimer("Collision");
-    //auto bodySpan = m_bodies.AsSpan();
+    auto bodySpan = m_bodies.AsSpan();
     //NaiveNbyN(bodySpan, m_collisions);
-    UniformGrid(m_bodies, m_collisions);
+    UniformGrid(bodySpan, m_collisions);
     Benchmark::Get().StopTimer("Collision");
 }
 
