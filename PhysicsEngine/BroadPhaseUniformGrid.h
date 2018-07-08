@@ -60,8 +60,8 @@ struct FixedGrid
 class BroadPhaseUniformGrid
 {
 public:
-    explicit BroadPhaseUniformGrid(physBodyBuffer & bodies, const physVec2 & topLeftCornerPosition, const physVec2 & sizeExtents) : 
-        m_bodies(bodies.AsSpan())
+    explicit BroadPhaseUniformGrid(physBodyBufferSpan & bodies, const physVec2 & topLeftCornerPosition, const physVec2 & sizeExtents) : 
+        m_bodies(bodies)
     {
         auto cellSize = CalculateCellSize();
         auto width = uint16_t(sizeExtents.x / cellSize + 1);

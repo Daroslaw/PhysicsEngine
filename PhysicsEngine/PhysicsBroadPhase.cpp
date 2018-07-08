@@ -18,7 +18,7 @@ void NaiveNbyN(physBodyBufferSpan & bodies, physCollisionBuffer & collisions)
     }
 }
 
-void UniformGrid(physBodyBuffer & bodies, physCollisionBuffer & collisions)
+void UniformGrid(physBodyBufferSpan & bodies, physCollisionBuffer & collisions)
 {
     static BroadPhaseUniformGrid bp(bodies, physVec2(0, 0), physVec2(800, 600));
     bp.SetBodies(bodies);

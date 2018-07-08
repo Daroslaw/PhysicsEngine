@@ -36,13 +36,10 @@ private:
 	physVec2 m_gravity;
 
     physBodyBuffer m_bodies;
-
 	unsigned int m_curCircleIdx;
 	physCircleShape m_allCircles[MAX_CIRCLES];
-
 	unsigned int m_curPolyIdx;
 	physPolyShape m_allPolys[MAX_POLYGONS];
-
 	physCollisionBuffer m_collisions;
 
 	physPolyHandler m_polyHandler;
