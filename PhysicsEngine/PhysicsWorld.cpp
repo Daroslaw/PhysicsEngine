@@ -25,7 +25,7 @@ void physWorld::Simulate(float dt)
 		InitializeBody(&curBody);
 	}
 
-	GetCollisions()->Reset();
+	GetCollisions()->ResetHard();
 	BroadPhase();
 	NarrowPhase();
 	ResolveCollisions();
@@ -163,9 +163,13 @@ void physWorld::BroadPhase()
 
 void physWorld::NarrowPhase()
 {
-    for (uint32_t i = 0; i < m_collisions.count; ++i)
+    if (m_collisions.count == 0)
+        return;
+    for (uint32_t i = 0; i < MAX_COLLISIONS; ++i)
     {
         auto &col = m_collisions.collisions[i];
+        if (!col.IsValid())
+            continue;
         auto b1 = col.A;
 		auto b2 = col.B;
 		auto b1type = b1->GetShape()->GetType();

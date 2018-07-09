@@ -2,7 +2,7 @@
 
 #include "PhysicsMath.h"
 
-constexpr unsigned int MAX_VERTICES = 2100;
+constexpr unsigned int MAX_VERTICES = 20100;
 
 struct physVertex
 {

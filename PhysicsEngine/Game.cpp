@@ -153,7 +153,7 @@ void Game::InitScene5()
     auto bullet = world.RegisterPoly(-100, 300, v, 5);
     bodies.push_back(bullet);
 
-    for (int i = 0; i < 498; ++i)
+    for (int i = 0; i < MAX_BODIES - 2; ++i)
     {
         //bodies.push_back(world.RegisterCircle(randf(800), randf(400, 200), randf(40, 10)));
         bodies.push_back(world.RegisterBox(randf(800), randf(400, 200), randf(40, 10)));

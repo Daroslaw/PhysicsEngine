@@ -48,7 +48,12 @@ struct physCollision
 		dynamicFriction = 0;
 	}
 
-    bool IsValid();
+    bool operator==(const physCollision & rhs) const
+    {
+        return this->A == rhs.A && this->B == rhs.B;
+    }
+
+    bool IsValid() const;
 	void Initialize();
 	void Solve() const;
 	void PositionalCorrection() const;

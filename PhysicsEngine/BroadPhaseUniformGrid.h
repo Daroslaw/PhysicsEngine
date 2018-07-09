@@ -6,7 +6,7 @@
 #include "PhysicsBody.h"
 #include "PhysicsCollision.h"
 
-constexpr uint32_t OPEN_HASHING_BUCKET_NUMBER = 32;
+constexpr uint32_t OPEN_HASHING_BUCKET_NUMBER = 1024;
 
 struct IGrid
 {

@@ -2,7 +2,7 @@
 #include "PhysicsBody.h"
 #include <vector>
 
-bool physCollision::IsValid()
+bool physCollision::IsValid() const
 {
     return A != nullptr && B != nullptr;
 }
@@ -21,8 +21,6 @@ void physCollision::Initialize()
 
 void physCollision::Solve() const
 {
-	if (A == nullptr && B == nullptr)
-		return;
 	if (A->IsStatic() && B->IsStatic())
 		return;
 
@@ -51,7 +49,7 @@ void physCollision::Solve() const
 		j /= contactCnt;
 
 		//if (impulse.lengthSquared() == 0)
-			impulse = normal * j;
+		impulse = normal * j;
 		A->ApplyImpulse(-impulse, radA);
 		B->ApplyImpulse(impulse, radB);
 
@@ -103,17 +101,33 @@ void physCollisionBuffer::AppendCollision(physBody* a, physBody* b)
 
     if (count >= MAX_COLLISIONS)
         return;
-    collisions[count] = newCollision;
+    
+    constexpr uint32_t primeNumberA = 1231872409;
+    constexpr uint32_t primeNumberB = 3116752669;
+    uint32_t index = (primeNumberA * uint32_t(a) + primeNumberB * uint32_t(b)) % MAX_COLLISIONS;
+    
+    while (collisions[index].IsValid())
+    {
+        if (collisions[index] == newCollision)
+            return;
+        index = (index + 1) % MAX_COLLISIONS;
+    }
+    
+    collisions[index] = newCollision;
+    
     ++count;
 }
 
 void physCollisionBuffer::ResolveAll()
 {
-    for (uint32_t i = 0; i < count; ++i)
+    for (uint32_t i = 0; i < MAX_COLLISIONS; ++i)
     {
-        collisions[i].Initialize();
-        collisions[i].Solve();
-        collisions[i].PositionalCorrection();
+        auto& col = collisions[i];
+        if (!col.IsValid())
+            continue;
+        col.Initialize();
+        col.Solve();
+        col.PositionalCorrection();
     }
 }
 
@@ -124,7 +138,7 @@ void physCollisionBuffer::Reset()
 
 void physCollisionBuffer::ResetHard()
 {
-    for (uint32_t i = 0; i < count; ++i)
+    for (uint32_t i = 0; i < MAX_COLLISIONS; ++i)
         collisions[i] = physCollision();
     Reset();
 }
