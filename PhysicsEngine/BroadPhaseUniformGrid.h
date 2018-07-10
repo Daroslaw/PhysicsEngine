@@ -6,13 +6,14 @@
 #include "PhysicsBody.h"
 #include "PhysicsCollision.h"
 
-constexpr uint32_t OPEN_HASHING_BUCKET_NUMBER = 1024;
+constexpr uint32_t OPEN_HASHING_TABLE_SIZE = 1024;
+constexpr uint32_t CLOSED_HASHING_TABLE_SIZE = MAX_COLLISIONS * 2;
 
 struct IGrid
 {
     virtual ~IGrid(){}
-    virtual void MapObjects(physBodyBufferSpan) = 0;
-    virtual void Solve(physCollisionBuffer&) = 0;
+    virtual void MapObjects(physBodyBufferSpan bodies) = 0;
+    virtual void Solve(physCollisionBuffer & collisions) = 0;
     virtual void Clear() = 0;
 };
 
@@ -152,12 +153,120 @@ struct OpenHashGrid : IGrid
         for (auto& bucket : buckets)
             bucket.clear();
     }
+
     physVec2 topLeftCorner;
     uint32_t numOfBuckets;
     float cellSize = 0.f;
     float invCellSize = 0.f;
 
     std::vector<std::vector<physBody*>> buckets;
+};
+
+struct ClosedHashGrid : IGrid
+{
+    ClosedHashGrid(const physVec2 & position, uint32_t tableSize, float cellSize) :
+        topLeftCorner(position),
+        tableSize(tableSize),
+        cellSize(cellSize),
+        invCellSize(1.f/cellSize)
+    {
+        hashTable = new physBody*[tableSize];
+        ClosedHashGrid::Clear();
+    }
+
+    void MapObjects(physBodyBufferSpan bodies) override
+    {
+        for (uint16_t i = 0; i < bodies.size; ++i)
+        {
+            auto body = &bodies[i];
+            auto& aabb = body->GetAABB();
+
+            int16_t leftmostExtent = int16_t((aabb.topLeft.x - topLeftCorner.x) * invCellSize);
+            int16_t rightmostExtent = int16_t((aabb.botRight.x - topLeftCorner.x) * invCellSize);
+            int16_t topmostExtent = int16_t((aabb.topLeft.y - topLeftCorner.y) * invCellSize);
+            int16_t bottommostExtent = int16_t((aabb.botRight.y - topLeftCorner.y) * invCellSize);
+
+            minLeftmostExtent = std::min(leftmostExtent, minLeftmostExtent);
+            maxRightmostExtent = std::max(rightmostExtent, maxRightmostExtent);
+            minTopmostExtent = std::min(topmostExtent, minTopmostExtent);
+            maxBottommostExtent = std::max(bottommostExtent, maxBottommostExtent);
+
+            for (auto j = leftmostExtent; j <= rightmostExtent; ++j)
+                for (auto k = topmostExtent; k <= bottommostExtent; ++k)
+                {
+                    uint32_t index = ComputeIndex(j, k);
+                    
+                    while (hashTable[index] != nullptr)
+                    {
+                        if (hashTable[index] == body)
+                            continue;
+                        index = Probing(index);
+                    }
+                    hashTable[index] = body;
+                }
+        }
+    }
+
+    void Solve(physCollisionBuffer & collisions) override
+    {
+        for(int i = minLeftmostExtent; i <= maxRightmostExtent; ++i)
+        {
+            for(int j = minTopmostExtent; j <= maxBottommostExtent; ++j)
+            {
+                uint32_t index = ComputeIndex(i, j);
+                auto body = hashTable[index];
+                if (body == nullptr)
+                    continue;
+                std::vector<physBody*> currentBucket;
+                currentBucket.reserve(8);
+                while(body != nullptr)
+                {
+                    for (auto bodyFromBucket : currentBucket)
+                        collisions.AppendCollision(bodyFromBucket, body);
+                    currentBucket.push_back(body);
+                    index = Probing(index);
+                    body = hashTable[index];
+                }
+            }
+        }
+    }
+
+    void Clear() override
+    {
+        for(uint32_t i = 0; i < tableSize; ++i)
+            hashTable[i] = nullptr;
+
+        minLeftmostExtent = INT16_MAX;
+        maxRightmostExtent = INT16_MIN;
+        minTopmostExtent = INT16_MAX;
+        maxBottommostExtent = INT16_MIN;
+    }
+
+    uint32_t ComputeIndex(int16_t x, int16_t y) const
+    {
+        constexpr uint32_t randomPrimeX = 3233651589;
+        constexpr uint32_t randomPrimeY = 1955760773;
+
+        return (x * randomPrimeX + y * randomPrimeY) % tableSize;
+    }
+    
+    uint32_t Probing(uint32_t oldIndex) const
+    {
+        constexpr int16_t interval = 1;
+        return (oldIndex + interval) % tableSize;
+    }
+
+    int16_t minLeftmostExtent;
+    int16_t maxRightmostExtent;
+    int16_t minTopmostExtent;
+    int16_t maxBottommostExtent;
+
+    physVec2 topLeftCorner;
+    uint32_t tableSize;
+    float cellSize = 0.f;
+    float invCellSize = 0.f;
+
+    physBody** hashTable;
 };
 
 class BroadPhaseUniformGrid
@@ -171,8 +280,10 @@ public:
         auto height = uint16_t(sizeExtents.y / cellSize + 1);
 #if 0
         m_grid = new FixedGrid(topLeftCornerPosition, width, height, cellSize);
+#elif 0
+        m_grid = new OpenHashGrid(topLeftCornerPosition, OPEN_HASHING_TABLE_SIZE, cellSize);
 #else
-        m_grid = new OpenHashGrid(topLeftCornerPosition, OPEN_HASHING_BUCKET_NUMBER, cellSize);
+        m_grid = new ClosedHashGrid(topLeftCornerPosition, CLOSED_HASHING_TABLE_SIZE, cellSize);
 #endif
     }
     ~BroadPhaseUniformGrid()
