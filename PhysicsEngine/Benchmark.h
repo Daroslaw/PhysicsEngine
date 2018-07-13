@@ -3,6 +3,9 @@
 #include <string>
 #include "Windows.h"
 
+#undef min
+#undef max
+
 static unsigned long long freq()
 {
     LARGE_INTEGER frequency;

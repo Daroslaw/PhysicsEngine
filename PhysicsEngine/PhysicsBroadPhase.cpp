@@ -25,8 +25,9 @@ void UniformGrid(physBodyBufferSpan & bodies, physCollisionBuffer & collisions)
     bp.Solve(collisions);
 }
 
-template<class BuildingStrategy, class PartitioningStrategy, class TraversalStrategy>
-void BoundingVolumeHierarchy(physBodyBuffer & bodies, physCollisionBuffer & collisions)
+void HierarchicalGrid(physBodyBufferSpan& bodies, physCollisionBuffer& collisions)
 {
-
+    static BroadPhaseHierarchicalGrid bp;
+    bp.SetBodies(bodies);
+    bp.Solve(collisions);
 }

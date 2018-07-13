@@ -1,6 +1,7 @@
 #include "PhysicsCollision.h"
 #include "PhysicsBody.h"
 #include <vector>
+#include "Benchmark.h"
 
 bool physCollision::IsValid() const
 {
@@ -97,6 +98,7 @@ void physCollision::PositionalCorrection() const
 
 void physCollisionBuffer::AppendCollision(physBody* a, physBody* b)
 {
+    //Benchmark::Get().RunTimer("CollisionAppend");
     physCollision newCollision = physCollision(a, b);
 
     if (count >= MAX_COLLISIONS)
@@ -116,6 +118,7 @@ void physCollisionBuffer::AppendCollision(physBody* a, physBody* b)
     collisions[index] = newCollision;
     
     ++count;
+    //Benchmark::Get().StopTimer("CollisionAppend");
 }
 
 void physCollisionBuffer::ResolveAll()

@@ -98,6 +98,9 @@
     <ClInclude Include="BroadPhaseUniformGrid.h">
       <Filter>Header Files\Engine\SpatialPartitioning</Filter>
     </ClInclude>
+    <ClInclude Include="BroadPhaseHierarchicalGrid.h">
+      <Filter>Header Files\Engine\SpatialPartitioning</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

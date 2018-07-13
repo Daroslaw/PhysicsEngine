@@ -59,7 +59,7 @@ void main(void)
         std::cout << "Total: " << Benchmark::Get().PopResult("Total").count << std::endl;
         std::cout << "Update: " << Benchmark::Get().PopResult("Update").count << std::endl;
         std::cout << "Render: " << Benchmark::Get().PopResult("Render").count << std::endl;
-        std::cout << "Collision: " << Benchmark::Get().PopResult("Collision").count << std::endl << std::endl;
+        std::cout << "Collision: " << Benchmark::Get().PopResult("Collision").count/* - Benchmark::Get().PopResult("CollisionAppend").count*/ << std::endl << std::endl;
 	}
     delete game;
     //benchmarkWindow.close();
