@@ -242,7 +242,8 @@ void Game::Render(sf::RenderWindow & rw)
             DrawAABB(b->GetAABB(), sf::Color::Red, rw);
 
     }
-    for (int i = 0; i < world.GetCollisions()->count; ++i)
+    //  TODO:   Refactor the debug rendering
+    /*for (int i = 0; i < world.GetCollisions()->count; ++i)
     {
         auto c = world.GetCollisions()->collisions[i];
         if (!drawAABB && !drawContactPoints)
@@ -268,7 +269,7 @@ void Game::Render(sf::RenderWindow & rw)
         }
         else if (drawAABB)
             DrawAABB(aabb, sf::Color::Magenta, rw);
-    }
+    }*/
     rw.display();
 }
 

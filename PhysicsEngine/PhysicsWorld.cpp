@@ -25,8 +25,9 @@ void physWorld::Simulate(float dt)
 		InitializeBody(&curBody);
 	}
 
-	GetCollisions()->ResetHard();
+	GetCollisions()->Reset();
 	BroadPhase();
+    GetCollisions()->FilterCollisions();
 	NarrowPhase();
 	ResolveCollisions();
 
@@ -114,7 +115,7 @@ void physWorld::DestroyAll()
 	m_curPolyIdx = 0;
 
     m_bodies.ResetHard();
-    m_collisions.ResetHard();
+    m_collisions.Reset();
 	m_polyHandler.DestroyAll();
 }
 
@@ -164,11 +165,11 @@ void physWorld::BroadPhase()
 
 void physWorld::NarrowPhase()
 {
-    if (m_collisions.count == 0)
+    if (m_collisions.filteredCount == 0)
         return;
     for (uint32_t i = 0; i < MAX_COLLISIONS; ++i)
     {
-        auto &col = m_collisions.collisions[i];
+        auto &col = m_collisions.filteredCollisions[i];
         if (!col.IsValid())
             continue;
         auto b1 = col.A;

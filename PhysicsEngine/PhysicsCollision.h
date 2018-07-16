@@ -53,6 +53,11 @@ struct physCollision
         return this->A == rhs.A && this->B == rhs.B;
     }
 
+    bool operator!=(const physCollision & rhs) const
+    {
+        return !(*this == rhs);
+    }
+
     bool IsValid() const;
 	void Initialize();
 	void Solve() const;
@@ -61,13 +66,16 @@ struct physCollision
 
 struct physCollisionBuffer
 {
-    uint32_t count;
-    physCollision collisions[MAX_COLLISIONS];
+    uint32_t rawCount;
+    physCollision rawCollisions[MAX_COLLISIONS];
+
+    uint32_t filteredCount;
+    physCollision filteredCollisions[MAX_COLLISIONS];
 
     void AppendCollision(physBody * a, physBody * b);
+    void FilterCollisions();
     void ResolveAll();
     void Reset();
-    void ResetHard();
 };
 
 void CircleToCircle(physCollision *col, physBody *A, physBody *B);

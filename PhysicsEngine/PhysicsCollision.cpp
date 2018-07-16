@@ -98,34 +98,38 @@ void physCollision::PositionalCorrection() const
 
 void physCollisionBuffer::AppendCollision(physBody* a, physBody* b)
 {
-    //Benchmark::Get().RunTimer("CollisionAppend");
-    physCollision newCollision = physCollision(a, b);
-
-    if (count >= MAX_COLLISIONS)
+    if (rawCount >= MAX_COLLISIONS)
         return;
-    
-    constexpr uint32_t primeNumberA = 1231872409;
-    constexpr uint32_t primeNumberB = 3116752669;
-    uint32_t index = (primeNumberA * uint32_t(a) + primeNumberB * uint32_t(b)) % MAX_COLLISIONS;
-    
-    while (collisions[index].IsValid())
+
+    rawCollisions[rawCount] = physCollision(a, b);
+    ++rawCount;
+}
+
+void physCollisionBuffer::FilterCollisions()
+{
+    for(int i = 0; i < rawCount; ++i)
     {
-        if (collisions[index] == newCollision)
-            return;
-        index = (index + 1) % MAX_COLLISIONS;
+        physCollision & rawCollision = rawCollisions[i];
+        constexpr uint32_t primeNumberA = 1231872409;
+        constexpr uint32_t primeNumberB = 3116752669;
+        uint32_t index = (primeNumberA * uint32_t(rawCollision.A) + 
+                          primeNumberB * uint32_t(rawCollision.B)) % MAX_COLLISIONS;
+
+        while (filteredCollisions[index].IsValid() && filteredCollisions[index] != rawCollision)
+            index = (index + 1) % MAX_COLLISIONS;
+
+        filteredCollisions[index] = rawCollision;
+
+        ++filteredCount;
     }
-    
-    collisions[index] = newCollision;
-    
-    ++count;
-    //Benchmark::Get().StopTimer("CollisionAppend");
 }
 
 void physCollisionBuffer::ResolveAll()
 {
+
     for (uint32_t i = 0; i < MAX_COLLISIONS; ++i)
     {
-        auto& col = collisions[i];
+        auto& col = filteredCollisions[i];
         if (!col.IsValid())
             continue;
         col.Initialize();
@@ -136,14 +140,10 @@ void physCollisionBuffer::ResolveAll()
 
 void physCollisionBuffer::Reset()
 {
-    count = 0;
-}
-
-void physCollisionBuffer::ResetHard()
-{
     for (uint32_t i = 0; i < MAX_COLLISIONS; ++i)
-        collisions[i] = physCollision();
-    Reset();
+        filteredCollisions[i] = physCollision();
+    rawCount = 0;
+    filteredCount = 0;
 }
 
 void CircleToCircle(physCollision * col, physBody * A, physBody * B)
