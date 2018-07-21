@@ -160,6 +160,7 @@
     <ClInclude Include="Benchmark.h" />
     <ClInclude Include="Benchmarking.h" />
     <ClInclude Include="BroadPhaseHierarchicalGrid.h" />
+    <ClInclude Include="BroadPhaseQuadTree.h" />
     <ClInclude Include="BroadPhaseUniformGrid.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="PhysicsBody.h" />
@@ -170,7 +171,6 @@
     <ClInclude Include="PhysicsMath.h" />
     <ClInclude Include="PhysicsPoly.h" />
     <ClInclude Include="PhysicsWorld.h" />
-    <ClInclude Include="Tree.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

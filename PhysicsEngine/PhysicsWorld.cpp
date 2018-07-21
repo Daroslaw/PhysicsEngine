@@ -157,9 +157,15 @@ void physWorld::BroadPhase()
 {
     Benchmark::Get().RunTimer("Collision");
     auto bodySpan = m_bodies.AsSpan();
-    //NaiveNbyN(bodySpan, m_collisions);
-    //UniformGrid(bodySpan, m_collisions);
+#if 0
+    NaiveNbyN(bodySpan, m_collisions);
+#elif 0
+    UniformGrid(bodySpan, m_collisions);
+#elif 0
     HierarchicalGrid(bodySpan, m_collisions);
+#else
+    QuadTree(bodySpan, m_collisions);
+#endif
     Benchmark::Get().StopTimer("Collision");
 }
 

@@ -92,13 +92,13 @@
     <ClInclude Include="Benchmark.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Tree.h">
-      <Filter>Header Files\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="BroadPhaseUniformGrid.h">
       <Filter>Header Files\Engine\SpatialPartitioning</Filter>
     </ClInclude>
     <ClInclude Include="BroadPhaseHierarchicalGrid.h">
+      <Filter>Header Files\Engine\SpatialPartitioning</Filter>
+    </ClInclude>
+    <ClInclude Include="BroadPhaseQuadTree.h">
       <Filter>Header Files\Engine\SpatialPartitioning</Filter>
     </ClInclude>
   </ItemGroup>

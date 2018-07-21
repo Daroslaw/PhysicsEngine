@@ -31,3 +31,10 @@ void HierarchicalGrid(physBodyBufferSpan& bodies, physCollisionBuffer& collision
     bp.SetBodies(bodies);
     bp.Solve(collisions);
 }
+
+void QuadTree(physBodyBufferSpan& bodies, physCollisionBuffer& collisions)
+{
+    static BroadPhaseQuadTree bp(physVec2(400, 300), 400);
+    bp.SetBodies(bodies);
+    bp.Solve(collisions);
+}
