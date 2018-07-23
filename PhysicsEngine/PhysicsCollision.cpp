@@ -96,15 +96,6 @@ void physCollision::PositionalCorrection() const
 		B->SetPosition(B->GetPos() - (corr * B->GetInvMass()));
 }
 
-void physCollisionBuffer::AppendCollision(physBody* a, physBody* b)
-{
-    if (rawCount >= MAX_COLLISIONS)
-        return;
-
-    rawCollisions[rawCount] = physCollision(a, b);
-    ++rawCount;
-}
-
 void physCollisionBuffer::FilterCollisions()
 {
     for(int i = 0; i < rawCount; ++i)
@@ -118,8 +109,10 @@ void physCollisionBuffer::FilterCollisions()
         while (filteredCollisions[index].IsValid() && filteredCollisions[index] != rawCollision)
             index = (index + 1) % MAX_COLLISIONS;
 
-        filteredCollisions[index] = rawCollision;
+        if (filteredCollisions[index] == rawCollision)
+            continue;
 
+        filteredCollisions[index] = rawCollision;
         ++filteredCount;
     }
 }

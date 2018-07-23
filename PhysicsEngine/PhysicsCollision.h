@@ -72,7 +72,14 @@ struct physCollisionBuffer
     uint32_t filteredCount;
     physCollision filteredCollisions[MAX_COLLISIONS];
 
-    void AppendCollision(physBody * a, physBody * b);
+    void AppendCollision(physBody * a, physBody * b)
+    {
+        if (rawCount >= MAX_COLLISIONS)
+            return;
+
+        rawCollisions[rawCount] = physCollision(a, b);
+        ++rawCount;
+    }
     void FilterCollisions();
     void ResolveAll();
     void Reset();

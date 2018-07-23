@@ -134,7 +134,10 @@ private:
                 {
                     if (bodyA == bodyB)
                         break;
-                    collisions.AppendCollision(bodyA, bodyB);
+                    auto &aabb1 = bodyA->GetAABB();
+                    auto &aabb2 = bodyB->GetAABB();
+                    if (aabb1.Intersects(aabb2))
+                        collisions.AppendCollision(bodyA, bodyB);
                 }
             }
             int32_t breakFlag = int32_t(otherNodeIdx) - 1;
@@ -152,8 +155,8 @@ private:
 
     void Clear()
     {
-        for(uint32_t i = 0; i < QUAD_TREE_NODES; ++i)
-            m_treeArray[i] = Node();
+        for (uint32_t i = 0; i < QUAD_TREE_NODES; ++i)
+            m_treeArray[i].bodies.clear();
     }
 
     Node m_treeArray[QUAD_TREE_NODES];
