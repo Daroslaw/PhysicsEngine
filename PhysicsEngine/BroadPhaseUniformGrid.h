@@ -278,11 +278,11 @@ public:
         auto cellSize = CalculateCellSize();
         auto width = uint16_t(sizeExtents.x / cellSize + 1);
         auto height = uint16_t(sizeExtents.y / cellSize + 1);
-#if 0
+#if BP == BP_UNIFORM_FIXED
         m_grid = new FixedGrid(topLeftCornerPosition, width, height, cellSize);
-#elif 0
+#elif BP == BP_UNIFORM_OPENHASH
         m_grid = new OpenHashGrid(topLeftCornerPosition, OPEN_HASHING_TABLE_SIZE, cellSize);
-#else
+#elif BP == BP_UNIFORM_CLOSEDHASH
         m_grid = new ClosedHashGrid(topLeftCornerPosition, CLOSED_HASHING_TABLE_SIZE, cellSize);
 #endif
     }
