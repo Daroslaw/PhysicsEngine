@@ -28,3 +28,17 @@ Result Benchmark::PopResult(const std::string& name)
     m_measuredTimes.erase(name);
     return resultValue;
 }
+
+void Benchmark::RegisterValue(const std::string& name, unsigned long long value)
+{
+    m_registeredValues[name] = value;
+}
+
+unsigned long long Benchmark::PopValue(const std::string& name)
+{
+    auto valueEntry = m_registeredValues.find(name);
+    if (valueEntry == m_registeredValues.end())
+        return 0;
+    auto value = valueEntry->second;
+    return value;
+}

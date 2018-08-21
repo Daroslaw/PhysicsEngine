@@ -41,7 +41,6 @@ public:
 
     void Solve(physCollisionBuffer & collisions)
     {
-        //SolveCollisions(m_treeArray, collisions);
         SolveCollisions(collisions);
         Clear();
     }
@@ -77,14 +76,14 @@ private:
 
         physVec2 delta = body->GetPos() - node->center;
 
-        float bodyFullExtents = (body->GetAABB().GetExtents() * 2).length();
-        if (delta.length() < /*node->halfWidth + */bodyFullExtents)
+        auto bodyExtents = body->GetAABB().GetExtents();
+        if (abs(delta.x) < bodyExtents.x || abs(delta.y) < bodyExtents.y)
         {
             stayOnThisLevel = true;
         }
         else
         {
-            if (delta.y) index += 1;
+            if (delta.y > 0) index += 1;
             if (delta.x > 0) index += 2;
         }
         
@@ -93,33 +92,6 @@ private:
         else
             node->bodies.push_back(body);
     }
-
-    /*void SolveCollisions(Node * node, physCollisionBuffer & collisions) const
-    {
-        constexpr uint16_t MAX_DEPTH = 40;
-        static Node *ancestorStack[MAX_DEPTH];
-        static uint16_t depth = 0;
-
-        ancestorStack[depth++] = node;
-        for(uint32_t i = 0; i < depth; ++i)
-        {
-            for(auto bodyA : ancestorStack[i]->bodies)
-            {
-                for(auto bodyB : node->bodies)
-                {
-                    if (bodyA == bodyB)
-                        break;
-                    collisions.AppendCollision(bodyA, bodyB);
-                }
-            }
-        }
-
-        for (uint32_t i = 0; i < 4; ++i)
-            if (node->children[i])
-                SolveCollisions(node->children[i], collisions);
-
-        --depth;
-    }*/
 
     void SolveCollisions(physCollisionBuffer & collisions, uint32_t nodeIdx = 0)
     {

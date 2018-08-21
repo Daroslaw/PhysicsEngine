@@ -59,9 +59,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Benchmarking.h">
-      <Filter>Header Files\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="PhysicsBody.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
@@ -100,6 +97,12 @@
     </ClInclude>
     <ClInclude Include="BroadPhaseQuadTree.h">
       <Filter>Header Files\Engine\SpatialPartitioning</Filter>
+    </ClInclude>
+    <ClInclude Include="BroadPhaseSweepAndPrune.h">
+      <Filter>Header Files\Engine\SpatialPartitioning</Filter>
+    </ClInclude>
+    <ClInclude Include="Statistics.h">
+      <Filter>Header Files\Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

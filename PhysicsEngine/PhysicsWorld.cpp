@@ -23,6 +23,9 @@ void physWorld::Simulate(float dt)
 		auto & curBody = m_bodies.bodies[i];
 
 		InitializeBody(&curBody);
+        UpdateVelocity(&curBody, dt);
+        UpdatePosition(&curBody, dt);
+        //ClearBody(&curBody);
 	}
 
 	GetCollisions()->Reset();
@@ -34,8 +37,8 @@ void physWorld::Simulate(float dt)
 	for (unsigned int i = 0; i < m_bodies.count; ++i)
 	{
 		auto & curBody = m_bodies.bodies[i];
-		UpdateVelocity(&curBody, dt);
-		UpdatePosition(&curBody, dt);
+		//UpdateVelocity(&curBody, dt);
+		//UpdatePosition(&curBody, dt);
 		ClearBody(&curBody);
 	}
 }

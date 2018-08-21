@@ -5,9 +5,10 @@
 
 #include "PhysicsBody.h"
 #include "PhysicsCollision.h"
+#include "Benchmark.h"
 
 constexpr uint32_t OPEN_HASHING_TABLE_SIZE = 1024;
-constexpr uint32_t CLOSED_HASHING_TABLE_SIZE = MAX_COLLISIONS * 2;
+constexpr uint32_t CLOSED_HASHING_TABLE_SIZE = MAX_BODIES * 20;
 
 struct IGrid
 {
@@ -60,6 +61,7 @@ struct FixedGrid : IGrid
 
     void Solve(physCollisionBuffer & collisions) override
     {
+        unsigned long long testCount = 0;
         for (auto& bucket : buckets)
         {
             for (int i = 0; i < int(bucket.size() - 1); ++i)
@@ -72,9 +74,11 @@ struct FixedGrid : IGrid
                     auto &aabb2 = b2->GetAABB();
                     if (aabb1.Intersects(aabb2))
                         collisions.AppendCollision(b1, b2);
+                    ++testCount;
                 }
             }
         }
+        Benchmark::Get().RegisterValue("TestCount", testCount);
     }
 
     void Clear() override
@@ -131,6 +135,8 @@ struct OpenHashGrid : IGrid
 
     void Solve(physCollisionBuffer & collisions)  override
     {
+        unsigned long long testCount = 0;
+
         for (auto& bucket : buckets)
         {
             for (int i = 0; i < int(bucket.size() - 1); ++i)
@@ -143,9 +149,12 @@ struct OpenHashGrid : IGrid
                     auto &aabb2 = b2->GetAABB();
                     if (aabb1.Intersects(aabb2))
                         collisions.AppendCollision(b1, b2);
+                    ++testCount;
                 }
             }
         }
+
+        Benchmark::Get().RegisterValue("TestCount", testCount);
     }
 
     void Clear() override
@@ -209,6 +218,7 @@ struct ClosedHashGrid : IGrid
 
     void Solve(physCollisionBuffer & collisions) override
     {
+        unsigned long long testCount = 0;
         for(int i = minLeftmostExtent; i <= maxRightmostExtent; ++i)
         {
             for(int j = minTopmostExtent; j <= maxBottommostExtent; ++j)
@@ -222,13 +232,20 @@ struct ClosedHashGrid : IGrid
                 while(body != nullptr)
                 {
                     for (auto bodyFromBucket : currentBucket)
-                        collisions.AppendCollision(bodyFromBucket, body);
+                    {
+                        auto &aabb1 = body->GetAABB();
+                        auto &aabb2 = bodyFromBucket->GetAABB();
+                        if (aabb1.Intersects(aabb2))
+                            collisions.AppendCollision(bodyFromBucket, body);
+                        ++testCount;
+                    }
                     currentBucket.push_back(body);
                     index = Probing(index);
                     body = hashTable[index];
                 }
             }
         }
+        Benchmark::Get().RegisterValue("TestCount", testCount);
     }
 
     void Clear() override
@@ -329,7 +346,7 @@ inline float BroadPhaseUniformGrid::CalculateCellSize() const
         largestExtent = std::max(largestExtent, std::max(extents.x, extents.y));
     }
     return largestExtent * SQRT2;
-#else
+#elif 1
     //  Average Object Strategy
     float sumOfExtents = 0;
     for (uint16_t i = 0; i < m_bodies.size; ++i)
@@ -339,5 +356,8 @@ inline float BroadPhaseUniformGrid::CalculateCellSize() const
         sumOfExtents += std::max(extents.x, extents.y);
     }
     return sumOfExtents / m_bodies.size;
+#else 
+    //  Fixed size
+    return 10.f;
 #endif
 }

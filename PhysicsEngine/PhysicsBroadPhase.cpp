@@ -4,6 +4,7 @@
 
 void NaiveNbyN(physBodyBufferSpan & bodies, physCollisionBuffer & collisions)
 {
+    unsigned long long testCount = 0;
     for (uint32_t i = 0; i < bodies.size - 1; ++i)
     {
         for (uint32_t j = i + 1; j < bodies.size; ++j)
@@ -14,8 +15,10 @@ void NaiveNbyN(physBodyBufferSpan & bodies, physCollisionBuffer & collisions)
             auto &aabb2 = b2.GetAABB();
             if (aabb1.Intersects(aabb2))
                 collisions.AppendCollision(&b1, &b2);
+            ++testCount;
         }
     }
+    Benchmark::Get().RegisterValue("TestCount", testCount);
 }
 
 void UniformGrid(physBodyBufferSpan & bodies, physCollisionBuffer & collisions)

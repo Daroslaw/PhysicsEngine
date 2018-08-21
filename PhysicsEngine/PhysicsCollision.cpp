@@ -129,6 +129,9 @@ void physCollisionBuffer::ResolveAll()
         col.Solve();
         col.PositionalCorrection();
     }
+
+    Benchmark::Get().RegisterValue("AllCollisions", rawCount);
+    Benchmark::Get().RegisterValue("UniqueCollisions", filteredCount);
 }
 
 void physCollisionBuffer::Reset()

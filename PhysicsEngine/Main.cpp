@@ -1,13 +1,47 @@
 #include <iostream>
 #include "SFML/System.hpp"
 #include "SFML/Graphics.hpp"
-#include "Benchmarking.h"
+#include "Statistics.h"
 #include <iomanip>
 #include "Game.h"
 #include "Benchmark.h"
 
 constexpr float FPS = 180.f;
 constexpr float speedFactor = 1;
+
+void PrintBenchmark()
+{
+    using namespace std;
+
+    constexpr unsigned BUFFER_SIZE = 32;
+
+    static MovingAverage maCnt(BUFFER_SIZE);
+    static MovingAverage maMs(BUFFER_SIZE);
+    static MovingAverage testCnt(BUFFER_SIZE);
+    static MovingAverage allCol(BUFFER_SIZE);
+    static MovingAverage filtrCol(BUFFER_SIZE);
+
+    auto result =  Benchmark::Get().PopResult("Collision");
+    auto resultMs = result.milli();
+
+    auto getVal = [](const std::string& valName) { return Benchmark::Get().PopValue(valName); };
+
+    auto testCount = getVal("TestCount");
+    auto allCols = getVal("AllCollisions");
+    auto uqCols = getVal("UniqueCollisions");
+
+    cout << "#####" << endl;
+    cout << "Collision: \t" << result.count << endl;
+    cout << "Avg: \t \t" << maCnt.Get(result.count) << endl;
+    cout << "Ms: \t \t" << resultMs << endl;
+    cout << "Avg Ms: \t" << maMs.Get(resultMs) << endl;
+    cout << "Number of tests: \t" << testCount << endl;
+    cout << "Number of tests avg: \t" << testCnt.Get(testCount) << endl;
+    cout << "All collisions: \t" << allCols << endl;
+    cout << "All collisions avg: \t" << allCol.Get(allCols) << endl;
+    cout << "Unique collisions: \t" << uqCols << endl;
+    cout << "Unique collisions avg: \t" << filtrCol.Get(uqCols) << endl << endl;
+}
 
 void main(void)
 {
@@ -16,9 +50,6 @@ void main(void)
 	sf::RenderWindow simulationWindow(sf::VideoMode(800, 600), "Physics Engine");
 	simulationWindow.setFramerateLimit(FPS);
 
-    //sf::RenderWindow benchmarkWindow(sf::VideoMode(320, 240), "Benchmark");
-
-    bm::MovingAverage ma(32);
 	sf::Time frameTime = sf::seconds(speedFactor / FPS);
 	sf::Clock fpsCounter;
 
@@ -51,16 +82,11 @@ void main(void)
 		game->Update(frameTime.asSeconds());
         Benchmark::Get().StopTimer("Update");
         Benchmark::Get().RunTimer("Render");
-        game->Render(simulationWindow);
+        //game->Render(simulationWindow);
         Benchmark::Get().StopTimer("Render");
         Benchmark::Get().StopTimer("Total");
 
-        std::cout << "#####" << std::endl;
-        std::cout << "Total: " << Benchmark::Get().PopResult("Total").count << std::endl;
-        std::cout << "Update: " << Benchmark::Get().PopResult("Update").count << std::endl;
-        std::cout << "Render: " << Benchmark::Get().PopResult("Render").count << std::endl;
-        std::cout << "Collision: " << Benchmark::Get().PopResult("Collision").count << std::endl << std::endl;
+        PrintBenchmark();
 	}
     delete game;
-    //benchmarkWindow.close();
 }

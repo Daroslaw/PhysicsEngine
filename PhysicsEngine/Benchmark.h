@@ -26,19 +26,19 @@ struct Result
         this->count = count;
     }
 
-    double seconds() const
+    double micro() const
     {
-        return count * 1.0 / freq();
+        return (count * 1000000.0) / freq();
     }
 
     double milli() const
     {
-        return seconds() * 1000.;
+        return micro() * 0.001;
     }
 
-    double micro() const
+    double seconds() const
     {
-        return milli() * 1000.;
+        return milli() * 0.001;
     }
 };
 
@@ -57,8 +57,12 @@ public:
     void StopTimer(const std::string& name);
     Result PopResult(const std::string& name);
 
+    void RegisterValue(const std::string &name, unsigned long long value);
+    unsigned long long PopValue(const std::string &name);
+
 private:
     Benchmark() {}
     std::unordered_map<std::string, unsigned long long> m_startedCounters;
     std::unordered_map<std::string, Result> m_measuredTimes;
+    std::unordered_map<std::string, unsigned long long> m_registeredValues;
 };

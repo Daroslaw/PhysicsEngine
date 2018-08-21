@@ -3,7 +3,10 @@
 
 float randf(int rb, int lb = 0)
 {
-    return static_cast<float>((rand() % (rb - lb)) + lb);
+    float random = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    float diff = rb - lb;
+    float r = random * diff;
+    return r + lb;
 }
 
 
@@ -69,7 +72,7 @@ void Game::Init()
 {
     drawAABB = false;
     drawContactPoints = false;
-    InitScene5();
+    InitScene2();
 }
 
 void Game::InitScene1()
@@ -102,15 +105,27 @@ void Game::InitScene1()
 
 void Game::InitScene2()
 {
-    world.SetGravity({ 0, 10 });
+    world.SetGravity({ 0, 0 });
 
-    auto floor = world.RegisterRectangle(400, 600, 800, 100);
-    floor->SetStatic();
-    bodies.push_back(floor);
+    auto createWall = [&](int x, int y, int w, int h)
+    {
+        auto wall = world.RegisterRectangle(x, y, w, h);
+        wall->SetStatic();
+        bodies.push_back(wall);
+    };
 
-    auto ball = world.RegisterCircle(100, 500, 20);
-    bodies.push_back(ball);
-    ball->ApplyImpulse({ 50000, -70000 });
+    createWall(400, 0, 800, 20);
+    createWall(400, 600, 800, 20);
+    createWall(0, 300, 20, 580);
+    createWall(800, 300, 20, 580);
+
+    for (int i = 0; i < MAX_BODIES - 4; ++i)
+    {
+        bodies.push_back(world.RegisterCircle(randf(790, 10), randf(590, 10), randf(8, 5)));
+        auto impulse = physVec2(1000.f, 1000.f);
+        impulse.rotate(physRot(randf(360)));
+        bodies.back()->ApplyImpulse(impulse);
+    }
 }
 
 void Game::InitScene3()
