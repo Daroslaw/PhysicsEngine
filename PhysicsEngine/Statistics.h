@@ -9,13 +9,15 @@ public:
     {
         m_buffer.resize(bufferSize);
         m_init = true;
+        m_index = 0;
     }
     double Get(double nextValue)
     {
-        static uint16_t index = 0;
-
         if (!m_init)
-            m_buffer[index++ % m_buffer.size()] = nextValue;
+        {
+            m_buffer[m_index] = nextValue;
+            m_index = (m_index + 1) % m_buffer.size();
+        }
         else
         {
             m_buffer.assign(m_buffer.size(), nextValue);
@@ -26,5 +28,6 @@ public:
     }
 private:
     bool m_init;
+    unsigned m_index;
     std::vector<double> m_buffer;
 };

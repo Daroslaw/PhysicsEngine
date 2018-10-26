@@ -1,9 +1,14 @@
 #include "Game.h"
 #include "SFML/System.hpp"
 
+#include <random>
+
 float randf(int rb, int lb = 0)
 {
-    float random = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    constexpr auto seed = 1;
+    static std::mt19937_64 rng(seed);
+    static std::uniform_real_distribution<float> urd;
+    float random = urd(rng);
     float diff = rb - lb;
     float r = random * diff;
     return r + lb;
@@ -66,16 +71,95 @@ void DrawPoly(physBody *b, sf::RenderWindow & rw)
     rw.draw(poly);
 }
 
-
-
 void Game::Init()
 {
     drawAABB = false;
     drawContactPoints = false;
-    InitScene2();
+    InitScene1();
 }
 
+
 void Game::InitScene1()
+{
+    world.SetGravity({ 0, 0 });
+
+    auto createWall = [&](int x, int y, int w, int h)
+    {
+        auto wall = world.RegisterRectangle(x, y, w, h);
+        wall->SetStatic();
+        bodies.push_back(wall);
+    };
+
+    createWall(400, 0, 800, 20);
+    createWall(400, 800, 800, 20);
+    createWall(0, 400, 20, 780);
+    createWall(800, 400, 20, 780);
+
+    for (int i = 0; i < MAX_BODIES - 4; ++i)
+    {
+        bodies.push_back(world.RegisterCircle(randf(790, 10), randf(790, 10), randf(8, 5)));
+        auto impulse = physVec2(1000.f, 1000.f);
+        impulse.rotate(physRot(randf(360)));
+        bodies.back()->ApplyImpulse(impulse);
+    }
+}
+
+void Game::InitScene2()
+{
+    world.SetGravity({ 0, 0 });
+
+    auto createWall = [&](int x, int y, int w, int h)
+    {
+        auto wall = world.RegisterRectangle(x, y, w, h);
+        wall->SetStatic();
+        bodies.push_back(wall);
+    };
+
+    createWall(400, 0, 800, 20);
+    createWall(400, 800, 800, 20);
+    createWall(0, 400, 20, 780);
+    createWall(800, 400, 20, 780);
+
+    auto maxBodiesSqrt = int(sqrtf(MAX_BODIES)) + 1;
+    auto bodySize = int(800 / maxBodiesSqrt) / 2;
+
+    for (int i = 0; i < MAX_BODIES - 4; ++i)
+    {
+        bodies.push_back(world.RegisterCircle(randf(800 - bodySize, bodySize), randf(800 - bodySize, bodySize), bodySize));
+        auto impulse = physVec2(bodySize * 1000.f, bodySize * 1000.f);
+        impulse.rotate(physRot(randf(360)));
+        bodies.back()->ApplyImpulse(impulse);
+    }
+}
+
+void Game::InitScene3()
+{
+    world.SetGravity({ 0, 0 });
+
+    auto createWall = [&](int x, int y, int w, int h)
+    {
+        auto wall = world.RegisterRectangle(x, y, w, h);
+        wall->SetStatic();
+        bodies.push_back(wall);
+    };
+
+    createWall(400, 0, 800, 20);
+    createWall(400, 800, 800, 20);
+    createWall(0, 400, 20, 780);
+    createWall(800, 400, 20, 780);
+
+    for (int i = 0; i < MAX_BODIES - 4; ++i)
+    {
+        auto size = randf(40, 5);
+        bodies.push_back(world.RegisterCircle(randf(800 - size, size), randf(800-size, size), size));
+        auto impulse = physVec2(size * 1000.f, size * 1000.f);
+        impulse.rotate(physRot(randf(360)));
+        bodies.back()->ApplyImpulse(impulse);
+    }
+
+}
+
+void Game::InitScene4()
 {
     world.SetGravity({ 0.f, 10.f });
 
@@ -103,63 +187,6 @@ void Game::InitScene1()
     bodies.push_back(box);
 }
 
-void Game::InitScene2()
-{
-    world.SetGravity({ 0, 0 });
-
-    auto createWall = [&](int x, int y, int w, int h)
-    {
-        auto wall = world.RegisterRectangle(x, y, w, h);
-        wall->SetStatic();
-        bodies.push_back(wall);
-    };
-
-    createWall(400, 0, 800, 20);
-    createWall(400, 600, 800, 20);
-    createWall(0, 300, 20, 580);
-    createWall(800, 300, 20, 580);
-
-    for (int i = 0; i < MAX_BODIES - 4; ++i)
-    {
-        bodies.push_back(world.RegisterCircle(randf(790, 10), randf(590, 10), randf(8, 5)));
-        auto impulse = physVec2(1000.f, 1000.f);
-        impulse.rotate(physRot(randf(360)));
-        bodies.back()->ApplyImpulse(impulse);
-    }
-}
-
-void Game::InitScene3()
-{
-    world.SetGravity({ 0, 10 });
-
-    auto floor = world.RegisterRectangle(400, 300, 300, 100);
-    floor->SetStatic();
-    bodies.push_back(floor);
-
-    //auto box = world.RegisterRectangle(400, 200, 30, 30);
-    //box->SetRotation(M_PI_4 / 2);
-    //bodies.push_back(box);
-
-    bodies.push_back(world.RegisterRectangle(600, 100, 250, 80));
-    bodies.push_back(world.RegisterRectangle(450, 0, 300, 100));
-}
-
-void Game::InitScene4()
-{
-    world.SetGravity({ 0, 0 });
-
-    auto brick = world.RegisterRectangle(200, 100, 100, 30);
-    bodies.push_back(brick);
-
-    auto ball = world.RegisterCircle(320, 220, 20);
-    bodies.push_back(ball);
-
-    ball->SetDensity(3.f);
-    brick->ApplyImpulse({ 40000, 40000 }, { -150, -50 });
-    ball->ApplyImpulse({ -40000, -40000 }, { -10, -10 });
-
-}
-
 void Game::InitScene5()
 {
     world.SetGravity({ 0, 10 });
@@ -176,14 +203,6 @@ void Game::InitScene5()
 
     bullet->ApplyImpulse({ 5000000, 0 });
     bullet->SetDensity(100.f);
-
-    //auto floor = world.RegisterRectangle(400, 600, 800, 100);
-    //floor->SetStatic();
-    //bodies.push_back(floor);
-    //
-    //auto wall = world.RegisterRectangle(800, 300, 100, 600);
-    //wall->SetStatic();
-    //bodies.push_back(wall);
 }
 
 void Game::InitScene6()
@@ -193,15 +212,8 @@ void Game::InitScene6()
     auto floor = world.RegisterRectangle(400, 300, 100, 100);
     floor->SetStatic();
     bodies.push_back(floor);
-
-    //auto box = world.RegisterRectangle(400, 200, 30, 30);
-    //box->SetRotation(M_PI_4 / 2);
-    //bodies.push_back(box);
-
     bodies.push_back(world.RegisterBox(400, 200, 30));
-    //bodies.push_back(world.RegisterBox(400, 160, 30));
-    //bodies.push_back(world.RegisterBox(400, 120, 30));
-    //bodies.back()->ApplyImpulse({ 0, 10000 });
+
 }
 
 void Game::InitScene7()
@@ -222,9 +234,6 @@ void Game::InitScene7()
         }
     }
 
-    //auto ball = world.RegisterCircle(200, 0, 50);
-    //ball->SetDensity(10.f);
-    //bodies.push_back(ball);
 }
 
 void Game::Update(const float dt)
@@ -257,34 +266,6 @@ void Game::Render(sf::RenderWindow & rw)
             DrawAABB(b->GetAABB(), sf::Color::Red, rw);
 
     }
-    //  TODO:   Refactor the debug rendering
-    /*for (int i = 0; i < world.GetCollisions()->count; ++i)
-    {
-        auto c = world.GetCollisions()->collisions[i];
-        if (!drawAABB && !drawContactPoints)
-            continue;
-        physAABB aabb = c.A->GetAABB().Combine(c.B->GetAABB());
-        if (c.contactCnt)
-        {
-            if (drawAABB)
-                DrawAABB(aabb, sf::Color::Green, rw);
-            if (drawContactPoints)
-            {
-                for (int i = 0; i < c.contactCnt; ++i)
-                {
-                    physVec2 cpPos = c.contacts[i];
-                    sf::CircleShape cp;
-                    cp.setRadius(3);
-                    cp.setFillColor(sf::Color::Red);
-                    cp.setPosition(cpPos.x, cpPos.y);
-                    cp.setOrigin(1.5, 1.5);
-                    rw.draw(cp);
-                }
-            }
-        }
-        else if (drawAABB)
-            DrawAABB(aabb, sf::Color::Magenta, rw);
-    }*/
     rw.display();
 }
 

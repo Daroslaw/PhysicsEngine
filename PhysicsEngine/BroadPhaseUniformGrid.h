@@ -7,8 +7,14 @@
 #include "PhysicsCollision.h"
 #include "Benchmark.h"
 
-constexpr uint32_t OPEN_HASHING_TABLE_SIZE = 1024;
-constexpr uint32_t CLOSED_HASHING_TABLE_SIZE = MAX_BODIES * 20;
+constexpr uint32_t OPEN_HASHING_TABLE_SIZE = 4001;
+constexpr uint32_t CLOSED_HASHING_TABLE_SIZE = 8009;
+constexpr uint32_t FIXED_GRID_CELL_SIZE = 25.f;
+
+#define PROBING_LINEAR 1
+#define PROBING_QUAD 2
+#define PROBING_DHASH 4
+#define PROBING PROBING_QUAD
 
 struct IGrid
 {
@@ -16,6 +22,7 @@ struct IGrid
     virtual void MapObjects(physBodyBufferSpan bodies) = 0;
     virtual void Solve(physCollisionBuffer & collisions) = 0;
     virtual void Clear() = 0;
+    virtual int GetSize() = 0;
 };
 
 struct FixedGrid : IGrid
@@ -85,6 +92,14 @@ struct FixedGrid : IGrid
     {
         for (auto& bucket : buckets)
             bucket.clear();
+    }
+
+    int GetSize() override
+    {
+        unsigned size = 0;
+        for (auto& bucket : buckets)
+            size += bucket.size();
+        return size;
     }
 
     physVec2 topLeftCorner;
@@ -163,6 +178,14 @@ struct OpenHashGrid : IGrid
             bucket.clear();
     }
 
+    int GetSize() override
+    {
+        unsigned size = 0;
+        for (auto& bucket : buckets)
+            size += bucket.size();
+        return size;
+    }
+
     physVec2 topLeftCorner;
     uint32_t numOfBuckets;
     float cellSize = 0.f;
@@ -204,12 +227,20 @@ struct ClosedHashGrid : IGrid
                 for (auto k = topmostExtent; k <= bottommostExtent; ++k)
                 {
                     uint32_t index = ComputeIndex(j, k);
-                    
+#if (PROBING == PROBING_DHASH)
+                    uint32_t indexBase = index;
+                    uint32_t index2 = Probing(index);
+#endif
+                    uint32_t iterations = 0;
                     while (hashTable[index] != nullptr)
                     {
                         if (hashTable[index] == body)
-                            continue;
-                        index = Probing(index);
+                            break;
+#if (PROBING == PROBING_LINEAR) || (PROBING == PROBING_QUAD)
+                        index = Probing(index, ++iterations);
+#elif (PROBING == PROBING_DHASH)
+                        index = (indexBase + (++iterations) * index2) % tableSize;
+#endif
                     }
                     hashTable[index] = body;
                 }
@@ -224,11 +255,16 @@ struct ClosedHashGrid : IGrid
             for(int j = minTopmostExtent; j <= maxBottommostExtent; ++j)
             {
                 uint32_t index = ComputeIndex(i, j);
+#if (PROBING == PROBING_DHASH)
+                uint32_t indexBase = index;
+                uint32_t index2 = Probing(index);
+#endif
                 auto body = hashTable[index];
                 if (body == nullptr)
                     continue;
                 std::vector<physBody*> currentBucket;
                 currentBucket.reserve(8);
+                uint32_t iterations = 0;
                 while(body != nullptr)
                 {
                     for (auto bodyFromBucket : currentBucket)
@@ -240,7 +276,11 @@ struct ClosedHashGrid : IGrid
                         ++testCount;
                     }
                     currentBucket.push_back(body);
-                    index = Probing(index);
+#if (PROBING == PROBING_LINEAR) || (PROBING == PROBING_QUAD)
+                    index = Probing(index, ++iterations);
+#elif (PROBING == PROBING_DHASH)
+                    index = (indexBase + (++iterations) * index2) % tableSize;
+#endif
                     body = hashTable[index];
                 }
             }
@@ -259,6 +299,14 @@ struct ClosedHashGrid : IGrid
         maxBottommostExtent = INT16_MIN;
     }
 
+    int GetSize() override
+    {
+        unsigned size = 0;
+        for (int i = 0; i < tableSize; ++i)
+            size += 1 * (hashTable[i] != nullptr);
+        return size;
+    }
+
     uint32_t ComputeIndex(int16_t x, int16_t y) const
     {
         constexpr uint32_t randomPrimeX = 3233651589;
@@ -267,10 +315,19 @@ struct ClosedHashGrid : IGrid
         return (x * randomPrimeX + y * randomPrimeY) % tableSize;
     }
     
-    uint32_t Probing(uint32_t oldIndex) const
+    uint32_t Probing(uint32_t oldIndex, uint32_t state = 0) const
     {
+        uint32_t index;
+#if (PROBING == PROBING_LINEAR)
         constexpr int16_t interval = 1;
-        return (oldIndex + interval) % tableSize;
+        index = (oldIndex + interval) % tableSize;
+#elif (PROBING == PROBING_QUAD)
+        index = (oldIndex + state * state) % tableSize;
+#elif (PROBING == PROBING_DHASH)
+        constexpr uint32_t randomPrime = 2003;
+        index = randomPrime - (oldIndex % randomPrime);
+#endif
+        return index;
     }
 
     int16_t minLeftmostExtent;
@@ -293,9 +350,9 @@ public:
         m_bodies(bodies)
     {
         auto cellSize = CalculateCellSize();
-        auto width = uint16_t(sizeExtents.x / cellSize + 1);
-        auto height = uint16_t(sizeExtents.y / cellSize + 1);
-#if BP == BP_UNIFORM_FIXED
+#if (BP == BP_UNIFORM_FIXED) || (BP == BP_UNIFORM)
+        auto width = uint16_t(sizeExtents.x / cellSize) + 1;
+        auto height = uint16_t(sizeExtents.y / cellSize) + 1;
         m_grid = new FixedGrid(topLeftCornerPosition, width, height, cellSize);
 #elif BP == BP_UNIFORM_OPENHASH
         m_grid = new OpenHashGrid(topLeftCornerPosition, OPEN_HASHING_TABLE_SIZE, cellSize);
@@ -327,6 +384,7 @@ inline void BroadPhaseUniformGrid::SetBodies(physBodyBufferSpan & bodies)
 inline void BroadPhaseUniformGrid::Solve(physCollisionBuffer& collisions) const
 {
     m_grid->MapObjects(m_bodies);
+    Benchmark::Get().RegisterValue("Size", m_grid->GetSize());
     m_grid->Solve(collisions);
     m_grid->Clear();
 }
@@ -335,9 +393,9 @@ inline void BroadPhaseUniformGrid::Solve(physCollisionBuffer& collisions) const
 //  TODO:   Research more strategies concerning cell size calculations
 inline float BroadPhaseUniformGrid::CalculateCellSize() const
 {
-    constexpr auto SQRT2 = float(M_SQRT2);
 #if 0
     //  Largest Object Strategy
+    constexpr auto SQRT2 = float(M_SQRT2);
     float largestExtent = 0;
     for(uint16_t i = 0; i < m_bodies.size; ++i)
     {
@@ -346,7 +404,7 @@ inline float BroadPhaseUniformGrid::CalculateCellSize() const
         largestExtent = std::max(largestExtent, std::max(extents.x, extents.y));
     }
     return largestExtent * SQRT2;
-#elif 1
+#elif 0
     //  Average Object Strategy
     float sumOfExtents = 0;
     for (uint16_t i = 0; i < m_bodies.size; ++i)
@@ -358,6 +416,6 @@ inline float BroadPhaseUniformGrid::CalculateCellSize() const
     return sumOfExtents / m_bodies.size;
 #else 
     //  Fixed size
-    return 10.f;
+    return FIXED_GRID_CELL_SIZE;
 #endif
 }

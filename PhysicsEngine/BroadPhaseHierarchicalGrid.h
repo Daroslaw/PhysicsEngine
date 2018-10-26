@@ -4,11 +4,9 @@
 #include <algorithm>
 #include "PhysicsCollision.h"
 
-constexpr uint8_t   HIERARCHICAL_GRID_LEVELS = 8;
-constexpr uint16_t  HIERARCHICAL_GRID_NUM_OF_BUCKETS = 4096;
-constexpr float     HIERARCHICAL_GRID_MIN_CELL_SIZE = 25.f;
-constexpr float     HIERARCHICAL_GRID_OBJ_TO_CELL_RATIO = 0.5f;
-constexpr float     HIERARCHICAL_GRID_CELL_TO_CELL_RATIO = 2.f;
+constexpr uint8_t   HIERARCHICAL_GRID_LEVELS = 4;
+constexpr uint16_t  HIERARCHICAL_GRID_NUM_OF_BUCKETS = 4001;
+constexpr float     HIERARCHICAL_GRID_MIN_CELL_SIZE = 10.f;
 
 struct GridObject
 {
@@ -44,30 +42,38 @@ class HierarchicalGrid
 public:
     HierarchicalGrid()
     {
-        m_buckets.resize(HIERARCHICAL_GRID_NUM_OF_BUCKETS);
+        m_buckets.resize(HIERARCHICAL_GRID_NUM_OF_BUCKETS); 
     }
 
     void AddObject(GridObject & newObject)
     {
-
         auto bodyAABB = newObject.body->GetAABB();
         auto fullExtents = bodyAABB.GetExtents() * 2;
         float longerEdge = std::max(fullExtents.x, fullExtents.y);
         float cellSize = HIERARCHICAL_GRID_MIN_CELL_SIZE;
 
         uint8_t level;
-        for (level = 0; cellSize * HIERARCHICAL_GRID_OBJ_TO_CELL_RATIO < longerEdge; ++level)
-            cellSize *= HIERARCHICAL_GRID_CELL_TO_CELL_RATIO;
+        for (level = 0; cellSize * 0.5f < longerEdge &&
+            level < HIERARCHICAL_GRID_LEVELS - 1; ++level)
+            cellSize *= 2.f;
     
-        level = std::min(level, HIERARCHICAL_GRID_LEVELS);
+        auto invCellSize = 1.f / cellSize;
 
-        physVec2 cellPosition = bodyAABB.GetCenter() / cellSize;
-        auto bucketIndex = ComputeBucketIndex(uint32_t(cellPosition.x), uint32_t(cellPosition.y), level);
+        int16_t leftmostExtent = int16_t(bodyAABB.topLeft.x * invCellSize);
+        int16_t rightmostExtent = int16_t(bodyAABB.botRight.x * invCellSize);
+        int16_t topmostExtent = int16_t(bodyAABB.topLeft.y * invCellSize);
+        int16_t bottommostExtent = int16_t(bodyAABB.botRight.y * invCellSize);
 
+        for (auto j = leftmostExtent; j <= rightmostExtent; ++j)
+            for (auto k = topmostExtent; k <= bottommostExtent; ++k)
+            {
+                uint32_t bucketIndex = ComputeBucketIndex(j, k, level);
 
-        m_buckets[bucketIndex].push_back(&newObject);
-        m_numOfObjectsAtLevel[level]++;
-        m_occupiedLevelMask |= 1 << level;
+                m_buckets[bucketIndex].push_back(&newObject);
+                m_numOfObjectsAtLevel[level]++;
+                m_occupiedLevelMask |= 1 << level;
+            }
+
     }
 
     void RemoveObject(GridObject & object)
@@ -88,8 +94,8 @@ public:
         auto objAABB = object.body->GetAABB();
         m_tick++;
 
-        for(int level = startLevel; level < HIERARCHICAL_GRID_LEVELS; 
-            size *= HIERARCHICAL_GRID_CELL_TO_CELL_RATIO, 
+        for(uint8_t level = startLevel;; 
+            size *= 2.f, 
             maskCopy >>= 1, 
             ++level)
         {
@@ -98,7 +104,9 @@ public:
             if ((maskCopy & 1) == 0)
                 continue;
 
-            float delta = size * HIERARCHICAL_GRID_OBJ_TO_CELL_RATIO;   //  TODO:   Needed?
+            level = std::min(level, uint8_t(HIERARCHICAL_GRID_LEVELS - 1));
+
+            float delta = 0;// size * HIERARCHICAL_GRID_OBJ_TO_CELL_RATIO;   //  TODO:   Needed?
             float invCellSize = 1.f / size;
 
             int16_t leftmostExtent = int16_t((objAABB.topLeft.x - delta) * invCellSize);
@@ -120,7 +128,10 @@ public:
                             continue;
                         auto otherObjAABB = otherObj->body->GetAABB();
                         if (objAABB.Intersects(otherObjAABB))
+                        {
                             collisions.AppendCollision(object.body, otherObj->body);
+                            ++m_collisionCount;
+                        }
                     }
                 }
         }
@@ -134,6 +145,12 @@ public:
         std::memset(m_numOfObjectsAtLevel, 0, sizeof m_numOfObjectsAtLevel);
         std::memset(m_timeStamps, 0, sizeof m_timeStamps);
         m_tick = 0;
+        m_collisionCount = 0;
+    }
+
+    auto GetCollisionCount()
+    {
+        return m_collisionCount;
     }
 
 private:
@@ -152,6 +169,7 @@ private:
     std::vector<std::vector<GridObject*>> m_buckets;
     uint32_t m_timeStamps[HIERARCHICAL_GRID_NUM_OF_BUCKETS] = { 0 };
     uint32_t m_tick = 0;
+    unsigned long long m_collisionCount = 0;
 }; 
 
 class BroadPhaseHierarchicalGrid
@@ -183,6 +201,7 @@ public:
         {
             m_hg.SolveForObject(m_wrappedBodies[i], collisions);
         }
+        Benchmark::Get().RegisterValue("TestCount", m_hg.GetCollisionCount());
         m_hg.Clear();
     }
 private:

@@ -9,17 +9,18 @@
 constexpr float FPS = 180.f;
 constexpr float speedFactor = 1;
 
+constexpr unsigned BENCHMARK_BUFFER_SIZE = 100;
+
 void PrintBenchmark()
 {
     using namespace std;
 
-    constexpr unsigned BUFFER_SIZE = 32;
-
-    static MovingAverage maCnt(BUFFER_SIZE);
-    static MovingAverage maMs(BUFFER_SIZE);
-    static MovingAverage testCnt(BUFFER_SIZE);
-    static MovingAverage allCol(BUFFER_SIZE);
-    static MovingAverage filtrCol(BUFFER_SIZE);
+    static MovingAverage maCnt(BENCHMARK_BUFFER_SIZE);
+    static MovingAverage maMs(BENCHMARK_BUFFER_SIZE);
+    static MovingAverage testCnt(BENCHMARK_BUFFER_SIZE);
+    static MovingAverage allCol(BENCHMARK_BUFFER_SIZE);
+    static MovingAverage filtrCol(BENCHMARK_BUFFER_SIZE);
+    static MovingAverage sizes(BENCHMARK_BUFFER_SIZE);
 
     auto result =  Benchmark::Get().PopResult("Collision");
     auto resultMs = result.milli();
@@ -29,25 +30,30 @@ void PrintBenchmark()
     auto testCount = getVal("TestCount");
     auto allCols = getVal("AllCollisions");
     auto uqCols = getVal("UniqueCollisions");
+    auto size = getVal("Size");
 
-    cout << "#####" << endl;
-    cout << "Collision: \t" << result.count << endl;
-    cout << "Avg: \t \t" << maCnt.Get(result.count) << endl;
-    cout << "Ms: \t \t" << resultMs << endl;
-    cout << "Avg Ms: \t" << maMs.Get(resultMs) << endl;
-    cout << "Number of tests: \t" << testCount << endl;
-    cout << "Number of tests avg: \t" << testCnt.Get(testCount) << endl;
-    cout << "All collisions: \t" << allCols << endl;
-    cout << "All collisions avg: \t" << allCol.Get(allCols) << endl;
-    cout << "Unique collisions: \t" << uqCols << endl;
-    cout << "Unique collisions avg: \t" << filtrCol.Get(uqCols) << endl << endl;
+    cout << "#####"                                                 << endl;
+    cout << "Cycles: \t" <<                 result.count            << endl;
+    cout << "Cycles avg: \t" <<             maCnt.Get(result.count) << endl;
+    cout << setprecision(3);
+    cout << "Ms: \t \t" <<                  resultMs                << endl;
+    cout << "Avg Ms: \t" <<                 maMs.Get(resultMs)      << endl;
+    cout << setprecision(2);
+    cout << "Number of tests: \t" <<        testCount               << endl;
+    cout << "Number of tests avg: \t" <<    testCnt.Get(testCount)  << endl;
+    cout << "All collisions: \t" <<         allCols                 << endl;
+    cout << "All collisions avg: \t" <<     allCol.Get(allCols)     << endl;
+    cout << "Unique collisions: \t" <<      uqCols                  << endl;
+    cout << "Unique collisions avg: \t" <<  filtrCol.Get(uqCols)    << endl;
+    cout << "Size: \t \t \t" <<             size                    << endl;
+    cout << "Size avg: \t \t" <<            sizes.Get(size) << endl << endl;
 }
 
 void main(void)
 {
 	srand(static_cast<int>(time(nullptr)));
 
-	sf::RenderWindow simulationWindow(sf::VideoMode(800, 600), "Physics Engine");
+	sf::RenderWindow simulationWindow(sf::VideoMode(800, 800), "Physics Engine");
 	simulationWindow.setFramerateLimit(FPS);
 
 	sf::Time frameTime = sf::seconds(speedFactor / FPS);
@@ -56,7 +62,9 @@ void main(void)
 	Game *game = new Game();
 	game->Init();
 
-    std::cout << std::setprecision(9);
+    std::cout << std::fixed << std::setprecision(2);
+
+    int iterations = 0;
 
 	while (simulationWindow.isOpen())
 	{
@@ -82,11 +90,13 @@ void main(void)
 		game->Update(frameTime.asSeconds());
         Benchmark::Get().StopTimer("Update");
         Benchmark::Get().RunTimer("Render");
-        //game->Render(simulationWindow);
+        game->Render(simulationWindow);
         Benchmark::Get().StopTimer("Render");
         Benchmark::Get().StopTimer("Total");
 
         PrintBenchmark();
+        //if (iterations++ >= BENCHMARK_BUFFER_SIZE + 5)
+        //    simulationWindow.close();
 	}
     delete game;
 }

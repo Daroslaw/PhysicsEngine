@@ -10,7 +10,7 @@ constexpr uint32_t POW_OF_4()
     return 1 << N << N;
 }
 
-constexpr uint8_t QUAD_TREE_LEVELS = 3;
+constexpr uint8_t QUAD_TREE_LEVELS = 5;
 constexpr uint32_t QUAD_TREE_NODES = (POW_OF_4<QUAD_TREE_LEVELS>() - 1) / 3;
 
 struct Node
@@ -31,6 +31,7 @@ public:
         m_treeHalfWidth(treeHalfWidth)
     {
         BuildTree(m_treeCenter, m_treeHalfWidth);
+        m_testCount = 0;
     }
 
     void SetBodies(physBodyBufferSpan & bodies)
@@ -110,6 +111,7 @@ private:
                     auto &aabb2 = bodyB->GetAABB();
                     if (aabb1.Intersects(aabb2))
                         collisions.AppendCollision(bodyA, bodyB);
+                    ++m_testCount;
                 }
             }
             int32_t breakFlag = int32_t(otherNodeIdx) - 1;
@@ -127,11 +129,24 @@ private:
 
     void Clear()
     {
+        Benchmark::Get().RegisterValue("TestCount", m_testCount);
+        //Benchmark::Get().RegisterValue("Size", GetSize());
+        m_testCount = 0;
         for (uint32_t i = 0; i < QUAD_TREE_NODES; ++i)
             m_treeArray[i].bodies.clear();
+    }
+
+    uint64_t GetSize()
+    {
+        auto result = 0;
+        for (int i = 0; i < QUAD_TREE_NODES; ++i)
+            result += m_treeArray[i].bodies.size();
+        return result;
     }
 
     Node m_treeArray[QUAD_TREE_NODES];
     physVec2 m_treeCenter;
     float m_treeHalfWidth;
+
+    uint64_t m_testCount;
 };

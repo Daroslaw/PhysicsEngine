@@ -161,7 +161,6 @@
     <ClInclude Include="Statistics.h" />
     <ClInclude Include="BroadPhaseHierarchicalGrid.h" />
     <ClInclude Include="BroadPhaseQuadTree.h" />
-    <ClInclude Include="BroadPhaseSweepAndPrune.h" />
     <ClInclude Include="BroadPhaseUniformGrid.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="PhysicsBody.h" />

@@ -98,9 +98,6 @@
     <ClInclude Include="BroadPhaseQuadTree.h">
       <Filter>Header Files\Engine\SpatialPartitioning</Filter>
     </ClInclude>
-    <ClInclude Include="BroadPhaseSweepAndPrune.h">
-      <Filter>Header Files\Engine\SpatialPartitioning</Filter>
-    </ClInclude>
     <ClInclude Include="Statistics.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>

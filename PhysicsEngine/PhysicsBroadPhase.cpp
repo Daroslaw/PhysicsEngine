@@ -23,7 +23,7 @@ void NaiveNbyN(physBodyBufferSpan & bodies, physCollisionBuffer & collisions)
 
 void UniformGrid(physBodyBufferSpan & bodies, physCollisionBuffer & collisions)
 {
-    static BroadPhaseUniformGrid bp(bodies, physVec2(0, 0), physVec2(800, 600));
+    static BroadPhaseUniformGrid bp(bodies, physVec2(0, 0), physVec2(800, 800));
     bp.SetBodies(bodies);
     bp.Solve(collisions);
 }
@@ -37,7 +37,7 @@ void HierarchicalGrid(physBodyBufferSpan& bodies, physCollisionBuffer& collision
 
 void QuadTree(physBodyBufferSpan& bodies, physCollisionBuffer& collisions)
 {
-    static BroadPhaseQuadTree bp(physVec2(400, 300), 400);
+    static BroadPhaseQuadTree bp(physVec2(400, 400), 400);
     bp.SetBodies(bodies);
     bp.Solve(collisions);
 }
